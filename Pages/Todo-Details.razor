@@ -1,0 +1,41 @@
+﻿@page "/todo/add"
+@page "/todo/edit/{TodoId}"
+
+@using test_blazor.Data
+@inject TodoService TodoService
+@inject NavigationManager Navigation
+
+<Todo_Form Todo="@todo" SubmitForm="@((e) => HandleValidSubmit(e))" />
+
+
+@code {
+    [Parameter]
+    public string? TodoId { get; set; }
+    private TodoModel todo = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (TodoId != null)
+        {
+            todo = await TodoService.GetTodoAsync(TodoId) ?? new();
+
+        }
+        await base.OnInitializedAsync();
+    }
+
+
+    private async void HandleValidSubmit(TodoModel todo)
+    {
+        if (TodoId != null)
+        {
+            await TodoService.UpdateTodoAsync(todo, TodoId);
+        }
+        else
+        {
+            await TodoService.CreateTodoAsync(todo);
+
+        }
+        todo = new();
+        Navigation.NavigateTo("todo");
+    }
+}

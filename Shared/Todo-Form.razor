@@ -1,0 +1,41 @@
+﻿@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Inputs
+@using test_blazor.Data
+@inject NavigationManager Navigation
+
+<EditForm Model="@Todo" OnValidSubmit="@HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <div>
+        <div class="mb-3">
+            <label for="Title">Title</label>
+            <SfTextBox @bind-Value="@Todo.Title" Placeholder="Title"></SfTextBox>
+            <ValidationMessage For="@(() => Todo.Title)" />
+        </div>
+        <div class="mb-3">
+            <label for="Description">Description</label>
+            <SfTextBox @bind-Value="@Todo.Description" Multiline="true" Placeholder="Description"></SfTextBox>
+            <ValidationMessage For="@(() => Todo.Description)" />
+        </div>
+        <div class="mb-3">
+            <SfCheckBox @bind-Checked="@Todo.IsDone" Disabled="@(Todo.Id == string.Empty)">Complete</SfCheckBox>
+        </div>
+    </div>
+    <div class="mb-3">
+        <SfButton type="submit" IsPrimary="true">Submit</SfButton>
+    </div>
+
+</EditForm>
+
+@code {
+    [Parameter]
+    public TodoModel Todo { get; set; } = new();
+
+    [Parameter]
+    public EventCallback<TodoModel> SubmitForm { get; set; }
+
+    private async void HandleValidSubmit()
+    {
+        await SubmitForm.InvokeAsync(Todo);
+    }
+
+}

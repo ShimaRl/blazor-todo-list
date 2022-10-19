@@ -1,0 +1,108 @@
+﻿@page "/todo"
+
+@using Syncfusion.Blazor.Buttons
+@using test_blazor.Data;
+@inject TodoService TodoService
+@using Syncfusion.Blazor.Grids
+@inject NavigationManager Navigation
+
+<a href="todo/add">
+    <SfButton CssClass="e-outline">Add new todo</SfButton>
+</a>
+
+<div class="col-lg-12 control-section mt-5">
+    <div class="content-wrapper">
+        <div class="row">
+            <div id="container">
+                <SfGrid DataSource="@GridData" EnableHeaderFocus="true" AllowSelection="true" AllowSorting="true"
+                    AllowFiltering="true" EnableVirtualization="true" EnableHover="false" Height="500" RowHeight="50"
+                    GridLines="GridLine.Both" Toolbar="@(new string[] {"Delete"})">
+                    <GridFilterSettings Type="Syncfusion.Blazor.Grids.FilterType.Menu"></GridFilterSettings>
+                    <GridPageSettings PageSize="50"></GridPageSettings>
+                    <GridSelectionSettings PersistSelection="true">
+                    </GridSelectionSettings>
+                    <GridEditSettings AllowDeleting="true"></GridEditSettings>
+                    <GridEvents OnActionBegin="OnActionBegin" CommandClicked="OnCommandClicked" TValue="TodoModel">
+                    </GridEvents>
+                    <GridColumns>
+                        <GridColumn Field=@nameof(TodoModel.Id) HeaderText="ID" Visible="true" IsPrimaryKey="true"
+                            Width="200"></GridColumn>
+                        <GridColumn Field=@nameof(TodoModel.Title) Width="100" ClipMode="ClipMode.EllipsisWithTooltip">
+                        </GridColumn>
+                        <GridColumn Field=@nameof(TodoModel.Description) Width="200"
+                            ClipMode="ClipMode.EllipsisWithTooltip"></GridColumn>
+                        <GridColumn Field=@nameof(TodoModel.IsDone) HeaderText="Status" Width="100"
+                            FilterSettings="@(new FilterSettings { Type = Syncfusion.Blazor.Grids.FilterType.CheckBox })">
+                            <Template>
+                                @{
+                                    var todo = (context as TodoModel);
+                                    if (todo?.IsDone == true)
+                                    {
+                                        <SfChip>
+                                            <ChipItems>
+                                                <ChipItem Text="Complete" CssClass="e-success"></ChipItem>
+                                            </ChipItems>
+                                        </SfChip>
+
+                                    }
+                                    else
+                                    {
+                                        <SfChip>
+                                            <ChipItems>
+                                                <ChipItem Text="Incomplete" CssClass="e-danger"></ChipItem>
+                                            </ChipItems>
+                                        </SfChip>
+                                    }
+                                }
+
+                            </Template>
+                        </GridColumn>
+                        <GridColumn Field=@nameof(TodoModel.CreatedAt) HeaderText="Created At" Format="yyyy/MM/dd"
+                            Width="150"></GridColumn>
+                        <GridColumn HeaderText="Actions" TextAlign="TextAlign.Center" Width="150">
+                            <GridCommandColumns>
+                                <GridCommandColumn Type="CommandButtonType.Edit"
+                                    ButtonOption="@(new CommandButtonOptions() {IconCss="e-icons e-edit", CssClass="e-flat" })">
+                                </GridCommandColumn>
+                            </GridCommandColumns>
+                        </GridColumn>
+                    </GridColumns>
+                </SfGrid>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@code {
+    private TodoModel[]? todoArray;
+    public List<TodoModel> GridData { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        todoArray = await TodoService.GetTodosAsync();
+        GridData = todoArray.ToList();
+        await base.OnInitializedAsync();
+    }
+
+    private async void RefreshData()
+    {
+        todoArray = await TodoService.GetTodosAsync();
+        StateHasChanged();
+    }
+
+    private async void OnActionBegin(ActionEventArgs<TodoModel> args)
+    {
+        if (args.RequestType == Syncfusion.Blazor.Grids.Action.Delete)
+        {
+            await TodoService.DeleteTodoAsync(args.Data.Id);
+            RefreshData();
+        }
+    }
+
+    private void OnCommandClicked(CommandClickEventArgs<TodoModel> args)
+    {
+        Navigation.NavigateTo("todo/edit/" + args.RowData.Id);
+    }
+
+}
